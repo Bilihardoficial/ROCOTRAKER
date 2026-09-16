@@ -100,6 +100,17 @@ function statsView(){
  <div class="section"><h2>Resumen global</h2><div class="card muted">${blocks.length} registros · ${done.length} encadenados · ${attempts} intentos declarados</div></div>`);
 }
 
+function render(){
+  if(state.session){
+    if(state.screen === "projectsInSession") return projectsView(true);
+    return sessionView();
+  }
+  if(state.screen === "projects") return projectsView(false);
+  if(state.screen === "history") return historyView();
+  if(state.screen === "stats") return statsView();
+  return homeView();
+}
+
 function modal(html){ const el=document.createElement("div"); el.className="modal"; el.innerHTML=`<div class="sheet">${html}</div>`; document.body.appendChild(el); return el; }
 const REASONS=["Agarre","Fuerza","Técnica","Equilibrio","Potencia","Resistencia","Lectura","Otro"];
 function blockForm(existing,onSave,opts={}){
