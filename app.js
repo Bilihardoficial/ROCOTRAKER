@@ -38,7 +38,15 @@ function normalizeDb(raw){
 let db;
 try { db=normalizeDb(JSON.parse(localStorage.getItem(KEY)||"null")); }
 catch(e){ db=normalizeDb(null); }
-function save(){ localStorage.setItem(KEY,JSON.stringify(db)); }
+function save(){
+  try{
+    localStorage.setItem(KEY,JSON.stringify(db));
+    return true;
+  }catch(e){
+    console.error("RocoTracker: no se pudo guardar",e);
+    return false;
+  }
+}
 save();
 
 let state={screen:"home",session:null};
@@ -174,7 +182,20 @@ function sessionDetail(id){
 function finishSession(){
  if(!state.session) return;
  if(!state.session.blocks.length){ if(!confirm("La sesión no tiene bloques. ¿Cerrar igualmente?"))return; }
- state.session.end=now(); db.sessions.push(state.session); save(); state.session=null; state.screen="home"; app();
+ state.session.end=now();
+ const finished=state.session;
+ const previous=db.sessions;
+ db.sessions.push(finished);
+ if(!save()){
+   db.sessions=previous;
+   state.session=finished;
+   state.session.end=null;
+   alert("No se ha podido guardar la sesión. Es posible que el almacenamiento esté lleno, normalmente por fotos demasiado grandes. Exporta una copia y vuelve a intentarlo.");
+   return;
+ }
+ state.session=null;
+ state.screen="home";
+ app();
 }
 
 function bind(){
@@ -182,7 +203,13 @@ function bind(){
  const n=document.querySelector("#newSession"); if(n)n.onclick=()=>{state.session={id:uid("ses"),start:now(),blocks:[]};state.screen="session";app()};
  const a=document.querySelector("#addBlock");if(a)a.onclick=()=>blockForm(null,b=>{state.session.blocks.push(b);if(b.result==="fail")chooseProjectForFailedBlock(b);app();});
  const p=document.querySelector("#addProject");if(p)p.onclick=projectPicker;
- const f=document.querySelector("#finish");if(f)f.onclick=finishSession;
+ const f=document.querySelector("#finish");
+ if(f){
+   let closing=false;
+   const close=()=>{ if(closing)return; closing=true; finishSession(); setTimeout(()=>{closing=false},300); };
+   f.onclick=close;
+   f.ontouchend=close;
+ }
  document.querySelectorAll("[data-edit]").forEach(x=>x.onclick=()=>blockForm(state.session.blocks[+x.dataset.edit],b=>{const idx=+x.dataset.edit;const old=state.session.blocks[idx];b.projectId=old.projectId||null;state.session.blocks[idx]=b;app();}));
  document.querySelectorAll("[data-project]").forEach(x=>x.onclick=()=>projectAttempt(db.projects.find(p=>p.id===x.dataset.project)));
  document.querySelectorAll("[data-project-detail]").forEach(x=>x.onclick=()=>projectDetail(db.projects.find(p=>p.id===x.dataset.projectDetail)));
