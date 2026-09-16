@@ -1,9 +1,11 @@
 {
-  "name": "RocoTracker",
-  "short_name": "RocoTracker",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#111111",
-  "theme_color": "#111111",
-  "icons": []
+  "name":"RocoTracker",
+  "short_name":"RocoTracker",
+  "start_url":"./index.html",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#111111",
+  "theme_color":"#111111",
+  "lang":"es",
+  "icons":[]
 }
